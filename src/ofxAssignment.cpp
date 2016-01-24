@@ -121,7 +121,7 @@ void normalizeToLimits(vector<T>& x) {
 }
 
 template <class T>
-float getMax(vector<vector<T>>& m) {
+float getMax(const vector<vector<T>>& m) {
     float max = 0;
     for(auto& row : m) {
         for(auto& e : row) {
@@ -179,7 +179,7 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
     return matched;
 }
 
-const vector<int>& ofxAssignment::solve(vector<vector<double>>& cost) {
+const vector<int>& ofxAssignment::solve(const vector<vector<double>>& cost) {
     int dim = cost.size();
     cost_t** assigncost = new cost_t*[dim];
     float scale = BIG / getMax(cost);

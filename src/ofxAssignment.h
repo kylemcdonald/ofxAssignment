@@ -15,5 +15,5 @@ public:
     vector<T> match(vector<T>& a, vector<T>& b, bool normalize = true);
     
     // solve is useful for solving a square cost matrix directly
-    const vector<int>& solve(vector<vector<double>>& cost);
+    const vector<int>& solve(const vector<vector<double>>& cost);
 };
