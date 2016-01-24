@@ -131,15 +131,6 @@ float getMax(vector<vector<T>>& m) {
     return max;
 }
 
-template <class T>
-void scale(vector<vector<T>>& m, float s) {
-    for(auto& row : m) {
-        for(auto& e : row) {
-            e *= s;
-        }
-    }
-}
-
 vector<ofVec2f> makeGrid(int xSteps, int ySteps) {
     vector<ofVec2f> grid;
     for(int y = 0; y < ySteps; y++) {
@@ -179,7 +170,6 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
         normalizeToLimits(b);
     }
     vector<vector<double>> cost = getCost(a, b);
-    scale(cost, BIG / getMax(cost));
     solve(cost);
     vector<T> matched(n);
     for(int i = 0; i < n; i++) {
@@ -192,10 +182,11 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
 const vector<int>& ofxAssignment::solve(vector<vector<double>>& cost) {
     int dim = cost.size();
     cost_t** assigncost = new cost_t*[dim];
+    float scale = BIG / getMax(cost);
     for (int i = 0; i < dim; i++) {
         assigncost[i] = new cost_t[dim];
         for(int j = 0; j < dim; j++) {
-            assigncost[i][j] = cost[i][j];
+            assigncost[i][j] = scale * cost[i][j];
         }
     }
     
