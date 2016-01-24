@@ -20,30 +20,26 @@ public:
     float brightness, hue;
     ofColor average;
     vector<ofColor> grid;
-    Tile(int x, int y, int side, const ofColor& average, const vector<ofColor>& grid)
+    Tile(int x, int y, int side, const vector<ofColor>& grid)
     :ofVec2f(x, y)
     ,side(side)
-    ,average(average)
     ,grid(grid) {
-        brightness = average.getBrightness();
-        hue = average.getHue();
     }
     static vector<Tile> buildTiles(const ofPixels& pix, int side) {
-        // can optimize this by resizing to 3*w/side, 3*h/side then using the raw pixels
+        // we could do this with resizing but OF doesn't have a good downsampling method
         float third = side / 3.;
         int w = pix.getWidth(), h = pix.getHeight();
         int nx = w / side, ny = h / side;
         vector<Tile> tiles;
         for(int y = 0; y < h; y+=side) {
             for(int x = 0; x < w; x+=side) {
-                ofColor avg = getAverage(pix, x, y, side, side);
                 vector<ofColor> grid;
                 for(int ky = 0; ky < 3; ky++) {
                     for(int kx = 0; kx < 3; kx++) {
                         grid.push_back(getAverage(pix, x+kx*third, y+ky*third, third, third));
                     }
                 }
-                tiles.emplace_back(x, y, side, avg, grid);
+                tiles.emplace_back(x, y, side, grid);
             }
         }
         return tiles;
