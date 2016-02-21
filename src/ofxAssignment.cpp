@@ -48,6 +48,7 @@ ofVec2f normalize(ofVec2f& x, const ofVec2f& mi, const ofVec2f& ma) {
     x.y -= mi.y;
     x.x /= (ma.x - mi.x);
     x.y /= (ma.y - mi.y);
+    return x;
 }
 
 ofVec3f min(const ofVec3f& a, const ofVec3f& b) {
@@ -69,6 +70,7 @@ ofVec3f normalize(ofVec3f& x, const ofVec3f& mi, const ofVec3f& ma) {
     x.x /= (ma.x - mi.x);
     x.y /= (ma.y - mi.y);
     x.z /= (ma.z - mi.z);
+    return x;
 }
 
 template <class T>
