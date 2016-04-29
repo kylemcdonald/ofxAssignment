@@ -19,8 +19,13 @@ public:
         
         // then build the grid
         grid.clear();
-        for(const ofVec2f& point : makeGrid(25, 40)) {
+        for(const ofVec2f& point : makeGrid(120, 119)) {
             grid.push_back(vector<float>{point.x, point.y});
+        }
+        
+        // resize the data if it's too much
+        if(data.size() > grid.size()) {
+            data.resize(grid.size());
         }
         
         // and finally, match the grid to the data
@@ -30,6 +35,13 @@ public:
         
         // 1000 points in 497ms
         cout << grid.size() << " points in " <<  (stop - start) << "ms" << endl;
+        
+        // write to output
+        ofFile out("out.tsv", ofFile::WriteOnly);
+        for(auto& point : grid) {
+            out << point[0] << "\t" << point[1] << endl;
+        }
+        out.close();
         
         ofBackground(0);
         glPointSize(6);
