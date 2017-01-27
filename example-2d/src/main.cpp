@@ -34,7 +34,7 @@ public:
         cout << grid.size() << " points in " <<  (stop - start) << "ms" << endl;
         
         ofBackground(0);
-        glPointSize(6);
+        glPointSize(3);
     }
     void draw() {
         ofMesh mesh;

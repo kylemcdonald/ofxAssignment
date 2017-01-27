@@ -181,32 +181,25 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
     return matched;
 }
 
-const vector<int>& ofxAssignment::solve(const vector<vector<double>>& cost) {
+const vector<int>& ofxAssignment::solve(vector<vector<double>>& cost, bool normalize) {
     int dim = cost.size();
-    cost_t** assigncost = new cost_t*[dim];
-    float scale = BIG / getMax(cost);
-    for (int i = 0; i < dim; i++) {
-        assigncost[i] = new cost_t[dim];
-        for(int j = 0; j < dim; j++) {
-            assigncost[i][j] = scale * cost[i][j];
+    
+    if(normalize) {
+        unsigned long BIG = 1000000;
+        float scale = BIG / getMax(cost);
+        for (int i = 0; i < dim; i++) {
+            for(int j = 0; j < dim; j++) {
+                cost[i][j] *= scale;
+            }
         }
     }
     
-    row_t *rowsol = new row_t[dim];
-    col_t *colsol = new col_t[dim];
-    cost_t *u = new cost_t[dim];
-    cost_t *v = new cost_t[dim];
-    lap(dim, assigncost, rowsol, colsol, u, v);
+    vector<unsigned int> rowsol = CSA::lap(cost);
     
     assignment = vector<int>(dim);
     for (int i = 0; i < dim; i++) {
         assignment[i] = rowsol[i];
     }
-    
-    delete [] rowsol;
-    delete [] colsol;
-    delete [] u;
-    delete [] v;
     
     return assignment;
 }

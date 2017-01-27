@@ -19,7 +19,7 @@ public:
         
         // then build the grid
         grid.clear();
-        for(const ofVec2f& point : makeGrid(120, 119)) {
+        for(const ofVec2f& point : makeGrid(32, 31)) {
             grid.push_back(vector<float>{point.x, point.y});
         }
         
