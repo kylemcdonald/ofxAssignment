@@ -181,7 +181,36 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
     return matched;
 }
 
-const vector<int>& ofxAssignment::solve(vector<vector<double>>& cost, bool normalize) {
+// these are the available implementations
+template vector<ofVec2f> ofxAssignment::matchSparse<ofVec2f>(vector<ofVec2f>& a, vector<ofVec2f>& b, float percent, bool normalize);
+
+template <class T>
+vector<T> ofxAssignment::matchSparse(vector<T>& a, vector<T>& b, float percent, bool normalize) {
+    if(a.size() != b.size()) throw;
+    int n = a.size();
+    if(normalize) {
+        normalizeToLimits(a);
+        normalizeToLimits(b);
+    }
+    
+    vector<CSA::Point> ca(n), cb(n);
+    for(int i = 0; i < n; i++) {
+        ca[i].x = a[i].x;
+        ca[i].y = a[i].y;
+        cb[i].x = b[i].x;
+        cb[i].y = b[i].y;
+    }
+    assignment = CSA::lap(ca, cb, percent);
+    
+    vector<T> matched(n);
+    for(int i = 0; i < n; i++) {
+        int match = assignment[i];
+        matched[i] = b[match];
+    }
+    return matched;
+}
+
+const vector<unsigned int>& ofxAssignment::solve(vector<vector<double>>& cost, bool normalize) {
     int dim = cost.size();
     
     if(normalize) {
@@ -194,12 +223,6 @@ const vector<int>& ofxAssignment::solve(vector<vector<double>>& cost, bool norma
         }
     }
     
-    vector<unsigned int> rowsol = CSA::lap(cost);
-    
-    assignment = vector<int>(dim);
-    for (int i = 0; i < dim; i++) {
-        assignment[i] = rowsol[i];
-    }
-    
+    assignment = CSA::lap(cost);
     return assignment;
 }

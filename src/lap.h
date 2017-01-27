@@ -16,14 +16,14 @@ namespace CSA {
     std::vector<unsigned int> lap(const std::vector<Arc>& arcs);
     
     // Pass a dense cost matrix.
-    std::vector<unsigned int> lap(const std::vector<std::vector<double>>& costs);
-    std::vector<unsigned int> lap(const std::vector<std::vector<unsigned long>>& costs);
+    template <class T>
+    std::vector<unsigned int> lap(const std::vector<std::vector<T>>& costs);
     
     // A 2d point.
     struct Point {
         float x;
         float y;
     };
-    // Pass two sets of points.
-    std::vector<unsigned int> lap(const std::vector<Point>& a, const std::vector<Point>& b);
+    // Pass two sets of points, evaluate a subset of the cost matrix.
+    std::vector<unsigned int> lap(const std::vector<Point>& a, const std::vector<Point>& b, float percent=0.10);
 }

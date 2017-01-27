@@ -244,14 +244,11 @@ vector<Arc> build_arcs(const vector<vector<T>>& costs, unsigned int& lhs_n, unsi
     return arcs;
 }
 
-// not sure why i can't template these
-vector<unsigned int> CSA::lap(const vector<vector<double>>& costs) {
-    unsigned int lhs_n, rhs_n;
-    vector<Arc> arcs = build_arcs(costs, lhs_n, rhs_n);
-    return ::lap(arcs, lhs_n, rhs_n);
-}
+template vector<unsigned int> CSA::lap(const vector<vector<double>>& costs);
+template vector<unsigned int> CSA::lap(const vector<vector<unsigned long>>& costs);
 
-vector<unsigned int> CSA::lap(const vector<vector<unsigned long>>& costs) {
+template <class T>
+vector<unsigned int> CSA::lap(const vector<vector<T>>& costs) {
     unsigned int lhs_n, rhs_n;
     vector<Arc> arcs = build_arcs(costs, lhs_n, rhs_n);
     return ::lap(arcs, lhs_n, rhs_n);
@@ -276,7 +273,7 @@ struct reduced_col_compare {
 // todo: pick a more adaptive scaling factor for the costs
 // todo: pick a better percentage
 // todo: parallelize the things that are easy (reduced cost, partial sort)
-vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Point>& b) {
+vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Point>& b, float percent) {
     float (*distance_func)(const CSA::Point&, const CSA::Point&);
     distance_func = distance_squared;
     
@@ -285,7 +282,7 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     
     // get minimum across rows
     //cout << "getting minimum across rows" << endl;
-    vector<float> row_minimum(rows, numeric_limits<float>::infinity());
+    vector<double> row_minimum(rows, numeric_limits<float>::infinity());
     for(unsigned int row = 0; row < rows; row++) {
         for(unsigned int col = 0; col < cols; col++) {
             float cost = distance_func(a[row], b[col]);
@@ -297,7 +294,7 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     
     // get reduced minimum acros cols
     //cout << "get reduced minimum acros cols" << endl;
-    vector<float> col_minimum(cols, numeric_limits<float>::infinity());
+    vector<double> col_minimum(cols, numeric_limits<float>::infinity());
     for(unsigned int row = 0; row < rows; row++) {
         for(unsigned int col = 0; col < cols; col++) {
             float cost = distance_func(a[row], b[col]);
@@ -309,10 +306,8 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     }
     
     // convert % to degree
-    float scale_cost = 100;
-    float percent = .10;
+    float scale_cost = 10000000; // what should this be?
     unsigned int subset = cols * percent;
-//    unsigned int subset = 50;
     //cout << "degree is " << subset << endl;
     
     // sort each row by reduced cost and create arcs from the lowest %
@@ -323,7 +318,7 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     for(unsigned int row = 0; row < rows; row++) {
         for(unsigned int col = 0; col < cols; col++) {
             // get reduced cost
-            float cost = distance_func(a[row], b[col]);
+            double cost = distance_func(a[row], b[col]);
             cost -= row_minimum[row] - col_minimum[col];
             cost *= scale_cost;
             
