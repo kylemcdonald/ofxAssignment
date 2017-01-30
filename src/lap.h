@@ -25,5 +25,8 @@ namespace CSA {
         float y;
     };
     // Pass two sets of points, evaluate a subset of the cost matrix.
-    std::vector<unsigned int> lap(const std::vector<Point>& a, const std::vector<Point>& b, float percent=0.10);
+    // If amount is:
+    // - >=0 and <1, it will be interpreted as a percentage
+    // - >=1 it will be interpreted as the number of points per row
+    std::vector<unsigned int> lap(const std::vector<Point>& a, const std::vector<Point>& b, float amount=0.50, std::vector<unsigned int>* search_radius=nullptr);
 }

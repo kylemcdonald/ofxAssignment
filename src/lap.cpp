@@ -271,9 +271,10 @@ struct reduced_col_compare {
     }
 };
 // todo: pick a more adaptive scaling factor for the costs
-// todo: pick a better percentage
+// todo: better way to pick percentage/subset value
 // todo: parallelize the things that are easy (reduced cost, partial sort)
-vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Point>& b, float percent) {
+// todo: better technique for guaranteeing perfect matching, e.g. random iterative pairing with available nearest neighbors
+vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Point>& b, float amount, std::vector<unsigned int>* search_radius) {
     float (*distance_func)(const CSA::Point&, const CSA::Point&);
     distance_func = distance_squared;
     
@@ -305,9 +306,15 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
         }
     }
     
-    // convert % to degree
-    float scale_cost = 10000000; // what should this be?
-    unsigned int subset = cols * percent;
+    float scale_cost = 100000000; // what should this be?
+    
+    unsigned int subset = amount;
+    if(amount < 1) {
+        // convert % to degree
+        subset = cols * amount;
+    } else if (amount >= a.size()) {
+            amount = a.size();
+        }
     //cout << "degree is " << subset << endl;
     
     // sort each row by reduced cost and create arcs from the lowest %
@@ -354,5 +361,35 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     // remove any unused elements at the end of arcs
     arcs.resize(distance(arcs.begin(), itr));
     
-    return ::lap(arcs, rows, cols);
+    // do lap
+    vector<unsigned int> assignment = ::lap(arcs, rows, cols);
+    
+    // check what has been assigned
+    if(search_radius != nullptr) {
+        search_radius->resize(rows);
+        for(unsigned int row = 0; row < rows; row++) {
+            for(unsigned int col = 0; col < cols; col++) {
+                // get reduced cost
+                double cost = distance_func(a[row], b[col]);
+                cost -= row_minimum[row] - col_minimum[col];
+                cost *= scale_cost;
+                
+                ReducedCol& reduced_col = reduced_cols[col];
+                reduced_col.col = col;
+                reduced_col.reduced_cost = cost;
+            }
+            
+            // partial sort and find assigned index in sorted array
+            partial_sort(reduced_cols.begin(), reduced_cols.begin() + subset, reduced_cols.end(), reduced_col_compare());
+            for(unsigned int i = 0; i < subset; i++) {
+                const ReducedCol& reduced_col = reduced_cols[i];
+                if(reduced_col.col == assignment[row]) {
+                    (*search_radius)[row] = i;
+                    break;
+                }
+            }
+        }
+    }
+    
+    return assignment;
 }

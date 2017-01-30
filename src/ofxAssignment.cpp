@@ -185,7 +185,11 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
 template vector<ofVec2f> ofxAssignment::matchSparse<ofVec2f>(vector<ofVec2f>& a, vector<ofVec2f>& b, float percent, bool normalize);
 
 template <class T>
-vector<T> ofxAssignment::matchSparse(vector<T>& a, vector<T>& b, float percent, bool normalize) {
+vector<T> ofxAssignment::matchSparse(vector<T>& a, vector<T>& b, float subset, bool normalize) {
+    if(subset == 0) {
+        return match(a, b);
+    }
+    
     if(a.size() != b.size()) throw;
     int n = a.size();
     if(normalize) {
@@ -200,7 +204,10 @@ vector<T> ofxAssignment::matchSparse(vector<T>& a, vector<T>& b, float percent, 
         cb[i].x = b[i].x;
         cb[i].y = b[i].y;
     }
-    assignment = CSA::lap(ca, cb, percent);
+    
+    // this is just for testing search radii, we can remove this when we're done from both ofxAssignment and lap.h/.cpp
+//    assignment = CSA::lap(ca, cb, subset, &sparseSearchRadius);
+    assignment = CSA::lap(ca, cb, subset);
     
     vector<T> matched(n);
     for(int i = 0; i < n; i++) {
@@ -224,5 +231,9 @@ const vector<unsigned int>& ofxAssignment::solve(vector<vector<double>>& cost, b
     }
     
     assignment = CSA::lap(cost);
+    return assignment;
+}
+
+const vector<unsigned int>& ofxAssignment::getAssignment() const {
     return assignment;
 }
