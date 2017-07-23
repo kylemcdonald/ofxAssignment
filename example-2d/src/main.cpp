@@ -43,7 +43,8 @@ public:
         float t = ofMap(cos(ofGetElapsedTimef()), -1, 1, 0, 1);
         ofSeedRandom(0);
         for(int i = 0; i < n; i++) {
-            mesh.addVertex(grid[i] * t + initial[i] * (1 - t));
+            ofVec2f v = grid[i] * t + initial[i] * (1 - t);
+            mesh.addVertex(ofVec3f(v));
             mesh.addColor(ofFloatColor(1, initial[i].x, initial[i].y));
         }
         float padding = 128;
