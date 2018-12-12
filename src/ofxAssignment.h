@@ -19,6 +19,11 @@ public:
     // if subset is 0, match() will be used
     // if subset is >0 and <1, it will be interpreted as a percentage
     // if subset is >=1 it will be interpreted as the number of points per row
+    // matchSparse works when all final assignments have similar distances
+    // it is good at transforming a circle into a square, but not an L shape into a square
+    // because most of the L matches the square exactly, but two sides of the square have no good match
+    // with point clouds to grids this means, ideally, the initial point cloud should be
+    // uniformly distributed across a square region.
     template <class T>
     vector<T> matchSparse(vector<T>& a, vector<T>& b, float subset = 0.50, bool normalize = true);
     

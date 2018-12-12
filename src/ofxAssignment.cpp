@@ -24,7 +24,9 @@ template <class T>
 vector<vector<double>> getCost(const vector<T>& a, const vector<T>& b) {
     if(a.size() != b.size()) throw;
     int n = a.size();
+    cout << "allocating cost matrix " << n << "x" << n << endl;
     vector<vector<double>> costs(n, vector<double>(n));
+    cout << "calculating cost matrix " << n << "x" << n << endl;
     for(int i = 0; i < n; i++) {
         for(int j = 0; j < n; j++) {
             costs[i][j] = getCost(a[i], b[j]);
@@ -172,6 +174,7 @@ vector<T> ofxAssignment::match(vector<T>& a, vector<T>& b, bool normalize) {
         normalizeToLimits(b);
     }
     vector<vector<double>> cost = getCost(a, b);
+    cout << "solving cost matrix " << n << "x" << n << endl;
     solve(cost);
     vector<T> matched(n);
     for(int i = 0; i < n; i++) {

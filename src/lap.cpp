@@ -25,16 +25,6 @@ lhs_ptr	head_lhs_node, tail_lhs_node;
 rhs_ptr	head_rhs_node, tail_rhs_node;
 lr_aptr	head_lr_arc, tail_lr_arc;
 
-/* ------------------- Bookkeeping/profiling variables ----------------- */
-unsigned	double_pushes = 0,
-pushes = 0,
-relabelings = 0,
-refines = 0,
-refine_time = 0;
-unsigned	rebuilds = 0,
-scans = 0,
-non_scans = 0;
-
 /* ------------------------- Tunable variables ------------------------- */
 /*
  Cost threshhold for pricing out: used even when price-outs are
@@ -183,7 +173,6 @@ vector<unsigned int> lap(const vector<Arc>& arcs, unsigned int lhs_n, unsigned i
     for (l_v = head_lhs_node; l_v != tail_lhs_node; l_v++)
         if (!l_v->node_info.few_arcs)
             best_build(l_v);
-    rebuilds = 0;
     
     //cout << "refining" << endl;
     min_epsilon = 2.0 / (double) (n + 1);
@@ -281,10 +270,15 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     unsigned int rows = a.size();
     unsigned int cols = b.size();
     
+    int freq = rows / 100;
+    
     // get minimum across rows
-    //cout << "getting minimum across rows" << endl;
+    cout << "getting minimum across rows" << endl;
     vector<double> row_minimum(rows, numeric_limits<float>::infinity());
     for(unsigned int row = 0; row < rows; row++) {
+        
+        if(row % freq == 0) cout << row << " / " << rows << " " << (100*row)/rows << "%" << endl;
+        
         for(unsigned int col = 0; col < cols; col++) {
             float cost = distance_func(a[row], b[col]);
             if(cost < row_minimum[row]) {
@@ -293,10 +287,13 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
         }
     }
     
-    // get reduced minimum acros cols
-    //cout << "get reduced minimum acros cols" << endl;
+    // get reduced minimum across cols
+    cout << "get reduced minimum across cols" << endl;
     vector<double> col_minimum(cols, numeric_limits<float>::infinity());
     for(unsigned int row = 0; row < rows; row++) {
+        
+        if(row % freq == 0) cout << row << " / " << rows << " " << (100*row)/rows << "%" << endl;
+        
         for(unsigned int col = 0; col < cols; col++) {
             float cost = distance_func(a[row], b[col]);
             cost -= row_minimum[row]; // reduce by row minimum
@@ -313,16 +310,23 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
         // convert % to degree
         subset = cols * amount;
     } else if (amount >= a.size()) {
-            amount = a.size();
-        }
+        amount = a.size();
+    }
     //cout << "degree is " << subset << endl;
     
     // sort each row by reduced cost and create arcs from the lowest %
-    //cout << "sort each row by reduced cost and create arcs from the lowest %" << endl;
-    vector<CSA::Arc> arcs((rows * subset) + rows);
+    cout << "sort each row by reduced cost and create arcs from the lowest %" << endl;
+    unsigned long long n_arcs = rows * (subset + 1);
+    cout << "trying to allocate " << n_arcs << " arcs" << endl;
+    vector<CSA::Arc> arcs(n_arcs);
+    cout << "actually allocated " << arcs.size() << " arcs" << endl;
     auto itr = arcs.begin();
+    unsigned long long arc_count = 0;
     vector<ReducedCol> reduced_cols(cols);
     for(unsigned int row = 0; row < rows; row++) {
+        
+        if(row % freq == 0) cout << row << " / " << rows << " " << (100*row)/rows << "%, arc_count=" << arc_count << endl;
+        
         for(unsigned int col = 0; col < cols; col++) {
             // get reduced cost
             double cost = distance_func(a[row], b[col]);
@@ -334,16 +338,19 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
             reduced_col.reduced_cost = cost;
             
             // add diagonal: guarantee that perfect matching exists
+            // should only add one arc per row
             if(row == col) {
                 Arc& arc = *itr;
                 arc.tail = row;
                 arc.head = col;
                 arc.cost = cost;
                 itr++;
+                arc_count++;
             }
         }
         
         // partial sort to get `subset` lowest cost arcs
+        // should add `subset` or less arcs
         partial_sort(reduced_cols.begin(), reduced_cols.begin() + subset, reduced_cols.end(), reduced_col_compare());
         for(unsigned int i = 0; i < subset; i++) {
             const ReducedCol& reduced_col = reduced_cols[i];
@@ -354,6 +361,7 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
                 arc.head = col;
                 arc.cost = reduced_col.reduced_cost;
                 itr++;
+                arc_count++;
             }
         }
     }
@@ -362,6 +370,7 @@ vector<unsigned int> CSA::lap(const vector<CSA::Point>& a, const vector<CSA::Poi
     arcs.resize(distance(arcs.begin(), itr));
     
     // do lap
+    cout << "do lap" << endl;
     vector<unsigned int> assignment = ::lap(arcs, rows, cols);
     
     // check what has been assigned
